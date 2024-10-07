@@ -1,5 +1,6 @@
-import { IsInt, Min, Max, IsString, IsIn } from 'class-validator';
+import { IsInt, Min, Max, IsString, IsIn, Matches, ValidateIf } from 'class-validator';
 import { Type } from 'class-transformer';
+import { EstateService } from '../services/estate/estate.service';
 
 export class EstateQueryDto {
   @Type(() => Number)
@@ -14,7 +15,8 @@ export class EstateQueryDto {
   @Max(47, { message: '都道府県コードは47以下である必要があります。' })
   prefCode: number;
 
-  @IsString({ message: '市区町村コードは文字列である必要があります。' })
+  @IsString()
+  @Matches(/^-|\d{5}$/, { message: '市区町村コードは都道府県コードで始まり、5桁の整数であるか、ハイフンである必要があります。' })
   cityCode: string;
 
   @Type(() => Number)
