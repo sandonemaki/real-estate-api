@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import axios, { AxiosResponse } from 'axios';
 import { EstateQueryDto } from 'src/estate/dto/estate-query.dto';
-import { AxiosResponse } from 'axios';
-import axios from 'axios';
+import { ERROR_MESSAGES } from 'src/estate/constants/message/error-messages';
 
 @Injectable()
 export class EstateService {
@@ -11,7 +11,50 @@ export class EstateService {
     const headers = { 'X-API-KEY': process.env.RESAS_API_KEY };
 
     const response: AxiosResponse = await axios.get(url, { headers });
-    console.log('Response:', response.status, response.data);
-    return response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      // レスポンスボディ内にエラーステータスが含まれていない場合があるため確認
+      if (response.data.statusCode && response.data.statusCode !== "200") {
+        return this.handleErrorResponse(parseInt(response.data.statusCode));
+      }
+      // 正常なレスポンスの場合そのまま返す
+      return {
+        statusCode: response.status,
+        data: response.data,
+      };
+    } else {
+      return this.handleErrorResponse(response.status);
+    }
+  }
+
+  // エラーメッセージの処理
+  private handleErrorResponse(statusCode: number) {
+    switch (statusCode) {
+      case 400:
+        return {
+          statusCode: 400,
+          message: ERROR_MESSAGES.BAD_REQUEST,
+        };
+      case 403:
+        return {
+          statusCode: 403,
+          message: ERROR_MESSAGES.FORBIDDEN,
+        };
+      case 404:
+        return {
+          statusCode: 404,
+          message: ERROR_MESSAGES.NOT_FOUND,
+        };
+      case 429:
+        return {
+          statusCode: 429,
+          message: ERROR_MESSAGES.TOO_MANY_REQUESTS,
+        };
+      default:
+        return {
+          statusCode: 500,
+          message: ERROR_MESSAGES.SERVER_ERROR,
+        };
+    }
   }
 }
