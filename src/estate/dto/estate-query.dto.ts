@@ -16,7 +16,7 @@ export class EstateQueryDto {
   prefCode: number;
 
   @IsString()
-  @Matches(/^-|\d{5}$/, { message: '市区町村コードは都道府県コードで始まり、5桁の整数であるか、ハイフンである必要があります。' })
+  @Matches(/^(-|\d{5})$/, { message: '市区町村コードは都道府県コードで始まり、5桁の整数であるか、ハイフンである必要があります。' })
   cityCode: string;
 
   @Type(() => Number)
