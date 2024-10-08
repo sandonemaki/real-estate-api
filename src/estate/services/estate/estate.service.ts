@@ -6,7 +6,7 @@ import { ResasApiException } from './resas-api.exception';
 
 @Injectable()
 export class EstateService {
-  async getEstateTransaction(query: EstateQueryDto) {
+  async getEstateTransactionData(query: EstateQueryDto) {
     const { year, prefCode, cityCode, displayType } = query;
     const url = `https://opendata.resas-portal.go.jp/api/v1/townPlanning/estateTransaction/bar?year=${year}&prefCode=${prefCode}&cityCode=${cityCode}&displayType=${displayType}`;
     const headers = { 'X-API-KEY': process.env.RESAS_API_KEY };
