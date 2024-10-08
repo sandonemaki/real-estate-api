@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { EstateQueryDto } from 'src/estate/dto/estate-query.dto';
 import { ERROR_MESSAGES } from 'src/estate/constants/message/error-messages';
+import { ResasApiException } from './resas-api.exception';
 
 @Injectable()
 export class EstateService {
@@ -15,7 +16,8 @@ export class EstateService {
     if (response.status >= 200 && response.status < 300) {
       // レスポンスボディ内にエラーステータスが含まれていない場合があるため確認
       if (response.data.statusCode && response.data.statusCode !== "200") {
-        return this.handleErrorResponse(parseInt(response.data.statusCode));
+        const errorResponse = this.handleErrorResponse(parseInt(response.data.statusCode));
+        throw new ResasApiException(errorResponse.message, errorResponse.statusCode);
       }
       // 正常なレスポンスの場合そのまま返す
       return {
@@ -23,7 +25,8 @@ export class EstateService {
         data: response.data,
       };
     } else {
-      return this.handleErrorResponse(response.status);
+      const errorResponse = this.handleErrorResponse(response.status);
+      throw new ResasApiException(errorResponse.message, errorResponse.statusCode);
     }
   }
 
