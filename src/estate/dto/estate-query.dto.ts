@@ -1,6 +1,5 @@
 import { IsInt, Min, Max, IsString, IsIn, Matches, ValidateIf } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EstateService } from '../services/estate/estate.service';
 
 export class EstateQueryDto {
   @Type(() => Number)
