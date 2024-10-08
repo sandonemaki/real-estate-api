@@ -29,4 +29,7 @@ export interface ServerErrorResponse {
   message: string;
 }
 
-export type RealEstateValueData = SuccessResponse | ValidationErrorResponse | ServerErrorResponse;
+export type RealEstateValueData =
+  | SuccessResponse
+  | ValidationErrorResponse
+  | ServerErrorResponse;
