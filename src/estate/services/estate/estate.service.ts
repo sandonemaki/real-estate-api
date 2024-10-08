@@ -11,7 +11,14 @@ export class EstateService {
     const url = `https://opendata.resas-portal.go.jp/api/v1/townPlanning/estateTransaction/bar?year=${year}&prefCode=${prefCode}&cityCode=${cityCode}&displayType=${displayType}`;
     const headers = { 'X-API-KEY': process.env.RESAS_API_KEY };
 
-    const response: AxiosResponse = await axios.get(url, { headers });
+    const response: AxiosResponse = await axios.get(url, { headers }).catch(error => {
+      if (axios.isAxiosError(error)) {
+        const statusCode = error.response?.status || 500;
+        const errorResponse = this.handleErrorResponse(statusCode);
+        throw new ResasApiException(errorResponse.message, errorResponse.statusCode);
+      }
+      throw new ResasApiException(ERROR_MESSAGES.SERVER_ERROR, 500);
+    });
 
     if (response.status >= 200 && response.status < 300) {
       // レスポンスボディ内にエラーステータスが含まれていない場合があるため確認
