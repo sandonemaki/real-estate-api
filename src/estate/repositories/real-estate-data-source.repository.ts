@@ -1,20 +1,22 @@
 import { Injectable } from '@nestjs/common';
+import { IRealEstateDataSourceRepository } from './real-estate-data-source.repository.interface';
+import { EstateQueryDto } from '../dto/estate-query.dto';
+import { RealEstateValueData } from '../types/real-estate-value-data.type';
 import axios, { AxiosResponse } from 'axios';
-import { EstateQueryDto } from 'src/estate/dto/estate-query.dto';
 import { ERROR_MESSAGES } from 'src/estate/constants/message/error-messages';
 import { ResasApiException } from './resas-api.exception';
 
 @Injectable()
-export class EstateService {
-  async getEstateTransactionData(query: EstateQueryDto) {
+export class RealEstateDataSourceRepository implements IRealEstateDataSourceRepository {
+  async fetchRealEstateValue(query: EstateQueryDto): Promise<RealEstateValueData> {
     const { year, prefCode, cityCode, displayType } = query;
     const url = `https://opendata.resas-portal.go.jp/api/v1/townPlanning/estateTransaction/bar?year=${year}&prefCode=${prefCode}&cityCode=${cityCode}&displayType=${displayType}`;
     const headers = { 'X-API-KEY': process.env.RESAS_API_KEY };
 
     const response: AxiosResponse = await axios.get(url, { headers }).catch(error => {
-      if (axios.isAxiosError(error)) {
-        const statusCode = error.response?.status || 500;
-        const errorResponse = this.handleErrorResponse(statusCode);
+			if (axios.isAxiosError(error)) {
+				const statusCode = error.response?.status || 500;
+				const errorResponse = this.handleErrorResponse(statusCode);
         throw new ResasApiException(errorResponse.message, errorResponse.statusCode);
       }
       throw new ResasApiException(ERROR_MESSAGES.SERVER_ERROR, 500);
@@ -66,5 +68,5 @@ export class EstateService {
           message: ERROR_MESSAGES.SERVER_ERROR,
         };
     }
-  }
+	}
 }
