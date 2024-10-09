@@ -1,4 +1,4 @@
-import { IsInt, Min, Max, IsString, IsIn, Matches, ValidateIf } from 'class-validator';
+import { IsInt, Min, Max, IsString, IsIn, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class EstateQueryDto {
@@ -15,11 +15,16 @@ export class EstateQueryDto {
   prefCode: number;
 
   @IsString()
-  @Matches(/^(-|\d{5})$/, { message: '市区町村コードは都道府県コードで始まり、5桁の整数であるか、ハイフンである必要があります。' })
+  @Matches(/^(-|\d{5})$/, {
+    message:
+      '市区町村コードは都道府県コードで始まり、5桁の整数であるか、ハイフンである必要があります。',
+  })
   cityCode: string;
 
   @Type(() => Number)
   @IsInt({ message: '表示タイプは整数で入力してください。' })
-  @IsIn([1, 2, 3, 4, 5], { message: '表示タイプは1から5の間で選択してください。' })
+  @IsIn([1, 2, 3, 4, 5], {
+    message: '表示タイプは1から5の間で選択してください。',
+  })
   displayType: number;
 }
