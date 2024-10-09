@@ -34,7 +34,7 @@ module.exports = {
     indent: [
       'error',
       2,
-      { ignoredNodes: ['PropertyDefinition'] },
+      { SwitchCase: 1, ignoredNodes: ['PropertyDefinition', 'ClassDeclaration[implements]']},
     ],
     'no-tabs': 'error',
   },
