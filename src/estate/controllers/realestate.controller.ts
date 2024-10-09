@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { EstateQueryDto } from 'src/estate/dto/estate-query.dto';
-import { InquireRealEstateValueUseCase } from 'src/estate/use-cases/inquire-real-estate-value.use-case';
+import { EstateQueryDto } from '../../estate/dto/estate-query.dto';
+import { InquireRealEstateValueUseCase } from '../../estate/use-cases/inquire-real-estate-value.use-case';
 
 @Controller('api/v1/townPlanning/estateTransaction')
 export class RealEstateController {
