@@ -31,6 +31,46 @@ describe('RealEstateController', () => {
   });
 
   describe('getEstateTransactionData', () => {
+    it('正常系: 有効なクエリで不動産取引価格を取得できること', async () => {
+      const query: EstateQueryDto = {
+        year: 2021,
+        prefCode: 13,
+        cityCode: '13101',
+        displayType: 1,
+      };
+      const mockResponse: RealEstateValueData = {
+        statusCode: 200,
+        data: {
+          message: null,
+          result: {
+            prefCode: '13',
+            prefName: '東京都',
+            cityCode: '13101',
+            cityName: '千代田区',
+            displayType: '1',
+            years: [
+              {
+                year: 2021,
+                value: 2361873,
+              },
+              {
+                year: 2020,
+                value: 2308214,
+              },
+            ],
+          },
+        },
+      };
+      mockInquireRealEstateValueUseCase.inquire.mockResolvedValue(mockResponse);
+
+      const result = await realEstateController.getEstateTransactionData(query);
+
+      expect(result).toEqual(mockResponse);
+      expect(mockInquireRealEstateValueUseCase.inquire).toHaveBeenCalledWith(
+        query,
+      );
+    });
+
     it('異常系: 無効なクエリの場合、バリデーションエラーがスローされること', async () => {
       const invalidQueries = [
         { year: 2008, prefCode: 13, cityCode: '13101', displayType: 1 }, //   年が2009未満の場合
