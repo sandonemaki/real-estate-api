@@ -3,6 +3,7 @@ import { RealEstateController } from './realestate.controller';
 import { InquireRealEstateValueUseCase } from '../use-cases/inquire-real-estate-value.use-case';
 import { BadRequestException } from '@nestjs/common';
 import { EstateQueryDto } from '../dto/estate-query.dto';
+import { RealEstateValueData } from '../types/real-estate-value-data.type';
 import { createTestValidationPipe } from './test-helpers';
 
 const mockInquireRealEstateValueUseCase = {
@@ -10,7 +11,9 @@ const mockInquireRealEstateValueUseCase = {
 };
 
 describe('RealEstateController', () => {
-  let inquireRealEstateValueUseCase: InquireRealEstateValueUseCase;
+  let realEstateController: RealEstateController;
+  //let validationPipe: ValidationPipe;
+  const validationPipe = createTestValidationPipe();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,30 +26,75 @@ describe('RealEstateController', () => {
       ],
     }).compile();
 
-    inquireRealEstateValueUseCase = module.get<InquireRealEstateValueUseCase>(
-      InquireRealEstateValueUseCase,
-    );
+    realEstateController =
+      module.get<RealEstateController>(RealEstateController);
   });
 
   describe('getEstateTransactionData', () => {
-    it('異常系: year の値が 200 の場合、バリデーションエラーがスローされること', async () => {
-      const invalidQuery = {
-        year: 200,
+    it('正常系: 有効なクエリで不動産取引価格を取得できること', async () => {
+      const query: EstateQueryDto = {
+        year: 2021,
         prefCode: 13,
         cityCode: '13101',
         displayType: 1,
       };
+      const mockResponse: RealEstateValueData = {
+        statusCode: 200,
+        data: {
+          message: null,
+          result: {
+            prefCode: '13',
+            prefName: '東京都',
+            cityCode: '13101',
+            cityName: '千代田区',
+            displayType: '1',
+            years: [
+              {
+                year: 2021,
+                value: 2361873,
+              },
+              {
+                year: 2020,
+                value: 2308214,
+              },
+            ],
+          },
+        },
+      };
+      mockInquireRealEstateValueUseCase.inquire.mockResolvedValue(mockResponse);
 
-      const validationPipe = createTestValidationPipe();
+      const result = await realEstateController.getEstateTransactionData(query);
 
-      await expect(
-        validationPipe.transform(invalidQuery, {
-          type: 'query',
-          metatype: EstateQueryDto,
-        }),
-      ).rejects.toThrow(BadRequestException);
+      expect(result).toEqual(mockResponse);
+      expect(mockInquireRealEstateValueUseCase.inquire).toHaveBeenCalledWith(
+        query,
+      );
+    });
 
-      expect(inquireRealEstateValueUseCase.inquire).not.toHaveBeenCalled();
+    it('異常系: 無効なクエリの場合、バリデーションエラーがスローされること', async () => {
+      const invalidQueries = [
+        { year: 2008, prefCode: 13, cityCode: '13101', displayType: 1 }, //   年が2009未満の場合
+        { year: 2022, prefCode: 13, cityCode: '13101', displayType: 1 }, //   年が2021より大きい場合
+        { year: 2015.5, prefCode: 13, cityCode: '13101', displayType: 1 }, // 年が小数点を含む場合
+        { year: 2021, prefCode: 0, cityCode: '13101', displayType: 1 }, //    都道府県コードが1未満の場合
+        { year: 2021, prefCode: 48, cityCode: '13101', displayType: 1 }, //   都道府県コードが47より大きい場合
+        { year: 2021, prefCode: 13.5, cityCode: '13101', displayType: 1 }, // 都道府県コードが小数点を含む場合
+        { year: 2021, prefCode: 13, cityCode: '131011', displayType: 1 }, //  市区町村コードが6桁の場合
+        { year: 2021, prefCode: 13, cityCode: '1310', displayType: 1 }, //    市区町村コードが4桁の場合
+        { year: 2021, prefCode: 13, cityCode: 'abcde', displayType: 1 }, //   市区町村コードが数字以外を含む場合
+        { year: 2021, prefCode: 13, cityCode: '13101', displayType: 0 }, //   表示タイプが1未満の場合
+        { year: 2021, prefCode: 13, cityCode: '13101', displayType: 6 }, //   表示タイプが5より大きい場合
+        { year: 2021, prefCode: 13, cityCode: '13101', displayType: 2.5 }, // 表示タイプが小数点を含む場合
+      ];
+
+      for (const query of invalidQueries) {
+        await expect(
+          validationPipe.transform(query, {
+            type: 'query',
+            metatype: EstateQueryDto,
+          }),
+        ).rejects.toThrow(BadRequestException);
+      }
     });
   });
 });
